@@ -1,0 +1,24 @@
+{
+  "name": "Activity Tracking for Trello",
+  "version": "1.0",
+  "description": "Extension log for trello.",
+  "browser_action": {
+    "default_icon": "icon.jpg",
+    "popup": "popup.html"
+  },
+   "options_page": "options.html",
+   "content_scripts": [
+    	{
+			"matches": ["https://trello.com/*","https://www.dropbox.com/1/oauth/authorize*"],
+			"js": ["jquery-1.7.1.min.js","trelloscrum.js","dropbox-authorize.js"],
+			"css": ["trelloscrum.css"]
+		}
+	],
+    "permissions": [
+    "unlimitedStorage",
+    "tabs",
+    "https://www.dropbox.com/",
+    "https://api.dropbox.com/",
+    "https://api-content.dropbox.com/"
+  ]
+}
