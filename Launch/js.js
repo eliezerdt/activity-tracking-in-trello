@@ -36,17 +36,15 @@ var onAuthorize = function() {
     $("#output").empty();
     //get member info
     Trello.members.get("me", function(member) {
-        ShowUsername(member);
+        //ShowUsername(member);
         localStorage.memberId = member.id;
-        localStorage.connectTime = moment(new Date()).utc();
         $("<div>").text("Loading Data...").appendTo("#output");
+
         try {
             //Display member boards
             if (member.idBoards.length > 0) {
-                $("#output").text("");
                 $("<select>").attr({
-                    id: 'boards',
-                    class: 'span4'
+                    id: 'boards'
                 }).appendTo("#output");
                 $('#boards').append(new Option("Select Board", null));
                 $('#boards').change(function(e) {
@@ -69,6 +67,7 @@ var onAuthorize = function() {
         }
     });
 };
+
 //Load Board,List,Card
 var ChangeBoard = function(boardId) {
     if (boardId !== null) {
@@ -80,8 +79,7 @@ var ChangeBoard = function(boardId) {
         Trello.get('/boards/' + boardId + '/lists', {}, function(lists) {
             if (!$("#lists").length) {
                 $("<select>").attr({
-                    id: 'lists',
-                    class: 'span4'
+                    id: 'lists'
                 }).appendTo("#output");
                 $('#lists').append(new Option("Select List", "noId"));
             }
@@ -107,37 +105,38 @@ var ChangeList = function(listId) {
             console.log(cards);
             if (!$("#cards").length) {
                 $("<select>").attr({
-                    id: 'cards',
-                    class: 'span4'
+                    id: 'cards'
                 }).appendTo("#output");
             }
             $('#cards').change(function(e) {
                 ChangeCard($(this).val());
             });
+            // recorrer tarjetas
             $.each(cards, function(index, card) {
+                console.log('card');
                 console.log(card);
                 if (!card.closed) {
-                    console.log("localStorage.memberId" + localStorage.memberId);
-                    $.each(card.idMembers, function(index, member) {
-                        console.log("member" + member);
-                        if (member == localStorage.memberId) {
-                            $('#cards').append(new Option(card.name, card.id));
-                        }
-                    });
+                    console.log('Card not closed');
+                    //console.log("localStorage.memberId" + localStorage.memberId);
+                    $('#cards').append(new Option(card.name, card.id));
+                    //Check Member or card
+                    //$.each(card.idMembers, function(index, member) {
+                    //    console.log("member" + member);
+                    //    if (member.id == localStorage.memberId) {
+                    //        $('#cards').append(new Option(card.name, card.id));
+                    //    }
+                    //});
+                } else {
+                    console.log('Card closed');
                 }
-            });           
-            if ($('#cards option').length > 0) {
-            console.log('Tarjetas asignadas' + $('#cards option').length );
-            }else{
-            console.log('No hay tarjetas asignadas');
-            }
+            });
         });
     }
 }
 var ChangeCard = function(cardId) {
-    console.log(cardId);
     try {
-        console.log("Change card");
+        //todo stop working on before card
+        console.log('ChangeCard' + cardId);
     } catch (e) {
         console.log("Error Change card" + e);
     }
@@ -145,19 +144,20 @@ var ChangeCard = function(cardId) {
 //Set divs with user info
 var ShowUsername = function(member) {
     try {
-        $("#linkProfile").attr('href', function(i) {
-            return "https://trello.com/" + member.username;
-        });
-        $("#linkProfile2").attr('href', function(i) {
-            return "https://trello.com/" + member.username;
-        });
-        $("#fullName").val(member.fullName);
+        $("#fullName").text(member.fullName);
+        $("#linkProfile").href("https://trello.com/" + member.username);
+        $("#linkProfile2").href("https://trello.com/" + member.username);
     } catch (e) {
         console.log('Error al cargar datos del usuario ' + e)
     }
 };
 //THE REAL FUN
-$("#btnLog").click(function() {
+$('#btnRegisterLog').click(function() {
+    console.log('GetAndUpdateText');
+    var textos = $("#logInput").val();
+    console.log(textos);
+    $("#logHistory").text($("#logInput").val());
+
     var input = $("#logInput");
     var log = $("#logHistory");
     console.log(input);
@@ -168,21 +168,20 @@ $("#btnLog").click(function() {
         input.val('');
     }
 });
+
 $("#btnStart").click(function() {
     if (!$("#cards").length) {
         console.log("no hay tarea escogida");
     } else {
         try {
             var now = moment(new Date()).utc();
-            var dataString = "\n" + now.format("MMMM Do YYYY, h:mm a") + " UTC" + "\n";
+            var dataString = "\n#   " + now.calendar() + " (utc) " + "\n";
             if (localStorage.cardStart) {
                 localStorage.cardStart = false;
-                dataString += "<strong>Finish working on </strong> " + $("#cards option:selected").text();
-                $("#output").show();
+                dataString += "END WORKING in '" + $("#cards option:selected").text() + "' of list " + $("#lists option:selected").text();
             } else {
                 localStorage.cardStart = true;
-                dataString += "<strong>Start working in </strong> " + $("#cards option:selected").text();
-                $("#output").hide();
+                dataString += "START WORKING in '" + $("#cards option:selected").text() + "' of list " + $("#lists option:selected").text();
             }
             $("#logHistory").val(function(prev) {
                 if (prev == 0) {
@@ -191,10 +190,9 @@ $("#btnStart").click(function() {
                     return prev + dataString;
                 }
             });
-            
         }
         catch (e) {
             console.log("fallo actualizar log");
         }
     }
-});​
+});
